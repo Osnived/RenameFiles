@@ -1,11 +1,17 @@
-import pandas as pd
+﻿import pandas as pd
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+env_path = Path(__file__).with_name('.env')
+load_dotenv(dotenv_path=env_path)
 
 # Ruta del archivo Excel
-excel_file = r"C:\\Users\\ocandanoza\\Downloads\\incidenciasMayo.xlsx"
+excel_file = os.getenv('EXCEL_FILE')
 
 # Carpeta donde están los archivos
-carpeta_archivos = r"C:\\Users\\ocandanoza\\Downloads\\foliosMayo"
+carpeta_archivos = os.getenv('CARPETA_ARCHIVOS')
 
 # Leer el Excel
 df = pd.read_excel(excel_file, dtype=str)
@@ -18,17 +24,20 @@ for i, col in enumerate(df.columns):
 # Recorrer cada fila
 for index, row in df.iterrows():
 
-    # Columna B (nombre nuevo) - índice 1
-    nombre_nuevo = str(row.iloc[1]).strip()
+    # En este archivo, los nombres reales de los archivos están en la columna "REEMPLAZAR"
+    # y los nombres destino se toman de la columna "Name".
+    nombre_actual_col = "REEMPLAZAR" if "REEMPLAZAR" in df.columns else df.columns[1]
+    nombre_nuevo_col = "Name" if "Name" in df.columns else df.columns[0]
 
-    # Columna K (nombre actual) - índice 10
-    nombre_actual = str(row.iloc[10]).strip()
+    nombre_actual = str(row[nombre_actual_col]).strip()
+    nombre_nuevo = str(row[nombre_nuevo_col]).strip()
 
     ruta_actual = os.path.join(carpeta_archivos, nombre_actual)
 
-    # Asegurar que el nombre nuevo tenga extensión .pdf
-    if not nombre_nuevo.lower().endswith(".pdf"):
-        nombre_nuevo += ".pdf"
+    # Mantener la extensión original del archivo al renombrarlo
+    extension_actual = os.path.splitext(nombre_actual)[1]
+    if extension_actual and not os.path.splitext(nombre_nuevo)[1]:
+        nombre_nuevo += extension_actual
 
     ruta_nueva = os.path.join(carpeta_archivos, nombre_nuevo)
 
